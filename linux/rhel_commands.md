@@ -1,62 +1,276 @@
-User and Authentication:
+# RHEL and IPA cheatsheet
 
-    Add a user: useradd username
-        Create with custom id (ex. 5000): -u 5000 before username
-    Change user password: passwd username
-    Add new group: groupadd groupname
-        Create with custom id (ex. 5000): -g 5000
-    Change user primary group: usermod -g groupname username
-    Add user to supplementary group: usermod --append -G groupname username
-        Grant sudo privileges: usermod --append -G wheel username
-        Admin: usermod --append -G system-administrators username
-    Overwrite all supplementary groups: usermod -G comma-separated-groupnames username
+- [User and Authentication](#user-and-authentication)
+  - [Setup New User](#user-setup)
+  - [Remove User](#remove-user)
+- [Groups](#groups)
+  - [Permissions](#permissions)
+  - [Create Group Directory](#create-group-directory)
+- [System Services](#system-services)
+- [Network](#network)
+- [FreeIPA](#freeipa)
+- [Backup and Restore](#backup-and-restore)
+- [Basic Security](#basic-security)
+  - [SELinux](#selinux)
+  
+## User and Authentication
 
-    Create group directory:
-        Associate directory with group: chgrp groupname directory
-        Change permissions to directory: chmod g+rwxs directory
+### User Setup
 
-    Remove user:
-        Log user out: loginctl terminate-user username
-        Remove user: userdel user-name
-            Remove user, home directory, mail, SELinux: userdel --remove --selinux-user username
-            Remove additional metadata: rm -rf /var/lib/AccountsService/users/username
+- Add a user:
 
-    Add a user to FreeIPA: ipa user-add username
-    Change user password: ipa passwd username
+  ```console
+  useradd [username]
+  ```
 
-    Create sudo privilege rule called sysadmin_sudo: ipa sudorule-add sysadmin_sudo --hostcat=all --runasusercat=all --runasgroupcat=all --cmdcat=all
-    Add sysadmin group to sudo rule: ipa sudorule-add-user sysadmin_sudo --group sysadmin
+  - Create with custom id (ex. 5000):
+  
+    ```console
+    useradd -u 5000 [username]
+    ```
 
-System Services:
+- Change user password:
 
-    List all system units: systemctl
-        To only see services: --type=service
-        To only see active ones: --state=active
-    Start a service: systemctl start service_name
-    Stop a service: systemctl stop service_name
-    Restart a service: systemctl restart service_name
-    Enable a service to start on boot: systemctl enable service_name
+  ```console
+  passwd [username]
+  ```
 
-Network and FreeIPA Configuration:
+### Remove user
 
-    Display network configuration: ifconfig or ip addr show
-    Check FreeIPA server status: ipa-server-install --check-status
-    Configure FreeIPA settings: ipa-server-install
+- Log user out:
 
-Security:
+  ```console
+  loginctl terminate-user [username]
+  ```
 
-    Update packages that have errata to latest version / earliest fixed version: yum update --security / yum update-minimal --security
-    Check for open ports: netstat -tulpn
+- Remove user:
 
-Backup and Restore:
+  ```console
+  userdel [username]
+  ```
 
-    Backup FreeIPA (stored in /var/lib/ipa/backup/): ipa-backup
-    Restore FreeIPA from backup: ipa-restore /path/to/backup
+  - Remove user, home directory, mail, SELinux:
 
-Basic Security:
+      ```console
+      userdel --remove --selinux-user [username]
+      ```
 
-    Display status: systemctl status firewalld
-    To start firewalld: systemctl enable --now firewalld
-    Check status of SELinux: getenforce
-    Set SELinux to enforcing mode (instead of permissive): setenforce Enforcing
-    Set SELinux to persist: Set SELINUX variable in /etc/selinux/config to enforcing/permissive/disabled
+  - Remove additional metadata:
+
+      ```console
+      rm -rf /var/lib/AccountsService/users/username
+      ```
+
+## Groups
+
+- Add new group:
+  
+  ```console
+  groupadd [groupname]
+  ```
+
+  - Create with custom id (ex. 5000):
+
+    ```console
+    groupadd -g 5000 [groupname]
+    ```
+
+- Change user primary group:
+  
+  ```console
+  usermod -g [groupname] [username]
+  ```
+
+- Add user to supplementary group:
+  
+  ```console
+  usermod --append -G [groupname] [username]
+  ```
+
+### Permissions
+
+- Grant sudo privileges:
+  
+  ```console
+  usermod --append -G wheel [username]
+  ```
+
+- Admin:
+  
+  ```console
+  usermod --append -G [system-administrators] [username]
+  ```
+
+- Overwrite all supplementary groups:
+  
+  ```console
+  usermod -G [comma-separated-groupnames] [username]
+  ```
+
+### Create group directory
+
+- Associate directory with group:
+  
+  ```console
+  chgrp [groupname] [directory]
+  ```
+
+- Change permissions to directory:
+  
+  ```console
+  chmod g+rwxs [directory]
+  ```
+
+- Create sudo privilege rule called sysadmin_sudo:
+
+  ```console
+  ipa sudorule-add sysadmin_sudo --hostcat=all -runasusercat=all --runasgroupcat=all --cmdcat=all
+  ```
+
+- Add sysadmin group to sudo rule:
+
+  ```console
+  ipa sudorule-add-user sysadmin_sudo --group sysadmin
+  ```
+
+## FreeIPA
+
+- Add a user to FreeIPA:
+
+  ```console
+  ipa user-add [username]
+  ```
+
+- Change user password:
+
+  ```console
+  ipa passwd [username]
+  ```
+
+- Check FreeIPA server status:
+
+  ```console
+  ipa-server-install --check-status
+  ```
+
+- Configure FreeIPA settings:
+
+  ```console
+  ipa-server-install
+  ```
+
+## System Services
+
+- List all system units:
+  
+  ```console
+  systemctl
+  ```
+
+  - To only see services:
+
+    ```console
+    systemctl --type=service
+    ```
+
+  - To only see active ones:
+
+    ```console
+    systemctl --state=active
+    ```
+
+- Start a service:
+  
+  ```console
+  systemctl start [service_name]
+  ```
+
+- Stop a service:
+  
+  ```console
+  systemctl stop [service_name]
+  ```
+
+- Restart a service:
+  
+  ```console
+  systemctl restart [service_name]
+  ```
+
+- Enable a service to start on boot:
+  
+  ```console
+  systemctl enable [service_name]
+  ```
+
+## Network
+
+- Display network configuration:
+
+  ```console
+  ifconfig 
+  ```
+
+  or
+
+  ```console
+  ip addr show
+  ```
+
+## Backup and Restore
+
+- Backup FreeIPA (stored in ```/var/lib/ipa/backup/```):
+
+  ```console
+  ipa-backup
+  ```
+
+- Restore FreeIPA from backup:
+
+  ```console
+  ipa-restore [/path/to/backup]
+  ```
+
+## Basic Security
+
+- Update packages that have errata to latest version earliest fixed version
+
+  ```console
+    yum update --security 
+    yum update-minimal --security
+  ```
+
+- Check for open ports:
+
+  ```console
+  netstat -tulpn
+  ```
+
+- Display status:
+
+  ```console
+  systemctl status firewalld
+  ```
+
+- To start firewalld:
+
+  ```console
+  systemctl enable --now firewalld
+  ```
+
+### SELinux
+
+- Check status of SELinux:
+
+  ```console
+  getenforce
+  ```
+
+- Set SELinux to enforcing mode (instead of permissive):
+
+  ```console
+  setenforce Enforcing
+  ```
+
+- Set SELinux to persist
+  - Set `SELINUX` variable in ```/etc/selinux/config``` to ```enforcing/permissive/disabled```
