@@ -36,3 +36,5 @@
   - Wireless_Communication_Policy.docx
   - Wireless_Communication_Standard.docx
   - Workstation_Security_(For_HIPAA)_Policy.docx
+
+- Additional policies can be found in NIST-Cybersecurity-Framework-Policy-Template-Guide-v2111Online from the [Center for Internet Security](https://www.cisecurity.org/-/jssmedia/Project/cisecurity/cisecurity/data/media/img/uploads/2021/11/NIST-Cybersecurity-Framework-Policy-Template-Guide-v2111Online.pdf)
