@@ -19,4 +19,20 @@
 
 ## Policies
 
-- Many of the policy document templates come from the [SANS Institute](https://www.sans.org/information-security-policy/)
+- All of the following policy document templates come from the [SANS Institute](https://www.sans.org/information-security-policy/):
+  - Acceptable_Use_Policy.docx
+  - Database_Credentials_Policy.docx
+  - email_policy.docx
+  - End_User_Encryption_Key_Protection_Plan.docx
+  - Information_Logging_Standard.docx
+  - Password_Construction_Guidelines.docx
+  - Password_Protection_Policy.docx
+  - Remote_Access_Policy.docx
+  - Remote_Access_Tools_Policy.docx
+  - Server_Security_Policy.docx
+  - Software_Installation_Policy.docx
+  - Technology_Equipment_Disposal_Policy.docx
+  - Web_Application_Security_Policy.docx
+  - Wireless_Communication_Policy.docx
+  - Wireless_Communication_Standard.docx
+  - Workstation_Security_(For_HIPAA)_Policy.docx
