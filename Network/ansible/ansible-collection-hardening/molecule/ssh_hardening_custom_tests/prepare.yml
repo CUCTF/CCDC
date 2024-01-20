@@ -1,0 +1,78 @@
+---
+- name: Wrapper playbook for kitchen testing "ansible-ssh-hardening" with default settings
+  hosts: all
+  become: true
+  environment:
+    http_proxy: "{{ lookup('env', 'http_proxy') | default(omit)  }}"
+    https_proxy: "{{ lookup('env', 'https_proxy') | default(omit) }}"
+    no_proxy: "{{ lookup('env', 'no_proxy') | default(omit) }}"
+  tasks:
+    - name: Use python3
+      ansible.builtin.set_fact:
+        ansible_python_interpreter: /usr/bin/python3
+      when: ansible_facts.distribution == 'Fedora'
+
+    - name: Install packages # noqa ignore-errors
+      ansible.builtin.yum:
+        name:
+          - openssh-clients
+          - openssh-server
+          - libselinux-python
+        state: present
+        update_cache: true
+      ignore_errors: true
+
+    - name: Install packages # noqa ignore-errors
+      ansible.builtin.dnf:
+        name:
+          - openssh-clients
+          - openssh-server
+          - procps-ng
+        state: present
+        update_cache: true
+      ignore_errors: true
+
+    - name: Install packages # noqa ignore-errors
+      ansible.builtin.apt:
+        name:
+          - openssh-client
+          - openssh-server
+        state: present
+        update_cache: true
+      ignore_errors: true
+
+    - name: Install required tools on SuSE
+      # cannot use zypper module, since it depends on python-xml
+      ansible.builtin.command: zypper -n install python-xml
+      changed_when: false
+      when: ansible_facts.os_family == 'Suse'
+
+    - name: Install packages
+      community.general.zypper:
+        name:
+          - openssh
+      when: ansible_facts.os_family == 'Suse'
+
+    - name: Install required tools on Arch
+      community.general.pacman:
+        name:
+          - openssh
+          - awk
+        state: present
+        update_cache: true
+      when: ansible_facts.os_family == 'Archlinux'
+
+    - name: Created needed directory
+      ansible.builtin.file:
+        path: /var/run/sshd
+        state: directory
+        mode: "0755"
+
+    - name: Create ssh host keys # noqa ignore-errors
+      ansible.builtin.command: ssh-keygen -A
+      when: not ((ansible_facts.os_family in ['Oracle Linux', 'RedHat']) and ansible_facts.distribution_major_version < '7')
+        or ansible_facts.distribution == "Fedora"
+        or ansible_facts.distribution == "Amazon"
+        or ansible_facts.os_family == "Suse"
+      changed_when: false
+      ignore_errors: true

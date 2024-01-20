@@ -1,0 +1,55 @@
+---
+- name: Verify
+  hosts: all
+  become: true
+  environment:
+    http_proxy: "{{ lookup('env', 'http_proxy') | default(omit)  }}"
+    https_proxy: "{{ lookup('env', 'https_proxy') | default(omit) }}"
+    no_proxy: "{{ lookup('env', 'no_proxy') | default(omit) }}"
+  tasks:
+    - name: Use Python 3 on Suse
+      ansible.builtin.set_fact:
+        ansible_python_interpreter: /usr/bin/python3
+      when:
+        - ansible_os_family == 'Suse'
+
+    - name: Install procps for debian systems
+      ansible.builtin.apt:
+        name: procps
+        state: present
+        update_cache: true
+      when: ansible_distribution == 'Debian'
+
+    - name: Include tests for the service
+      ansible.builtin.include_tasks: verify_tasks/service.yml
+
+    - name: Include tests for MySQL user
+      ansible.builtin.include_tasks: verify_tasks/mysql_users.yml
+
+- name: Verify
+  hosts: localhost
+  environment:
+    http_proxy: "{{ lookup('env', 'http_proxy') | default(omit)  }}"
+    https_proxy: "{{ lookup('env', 'https_proxy') | default(omit) }}"
+    no_proxy: "{{ lookup('env', 'no_proxy') | default(omit) }}"
+  tasks:
+    - name: Execute cinc-auditor tests
+      ansible.builtin.command: >
+        docker run
+        --volume /run/docker.sock:/run/docker.sock
+        docker.io/cincproject/auditor exec
+        -t docker://instance
+        --no-show-progress --no-color
+        --no-distinct-exit https://github.com/dev-sec/mysql-baseline/archive/refs/heads/master.zip
+      register: test_results
+      changed_when: false
+      ignore_errors: true
+
+    - name: Display details about the cinc-auditor results
+      ansible.builtin.debug:
+        msg: "{{ test_results.stdout_lines }}"
+
+    - name: Fail when tests fail
+      ansible.builtin.fail:
+        msg: Inspec failed to validate
+      when: test_results.rc != 0
