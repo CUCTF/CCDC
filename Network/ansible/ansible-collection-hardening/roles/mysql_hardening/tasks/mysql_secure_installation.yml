@@ -1,0 +1,106 @@
+---
+- name: Fail the role if the mysql root password was not set
+  ansible.builtin.fail:
+    msg: ERROR - you have to change default mysql_root_password
+  when: mysql_root_password == '-----====>SetR00tPa$$wordH3r3!!!<====-----'
+
+- name: Ensure that the root password is present
+  community.mysql.mysql_user:
+    name: root
+    host_all: true
+    password: "{{ mysql_root_password | mandatory }}"
+    state: present
+    login_unix_socket: "{{ login_unix_socket | default(omit) }}"
+
+- name: Install .my.cnf with credentials
+  ansible.builtin.template:
+    src: my.cnf.j2
+    dest: "{{ mysql_user_home }}/.my.cnf"
+    mode: "0400"
+  tags: my_cnf
+
+- name: Ensure that the test database is absent
+  community.mysql.mysql_db:
+    name: test
+    state: absent
+    login_unix_socket: "{{ login_unix_socket | default(omit) }}"
+  when: mysql_remove_test_database
+
+- name: Ensure that anonymous users are absent
+  community.mysql.mysql_user:
+    name: ""
+    state: absent
+    host_all: true
+    login_unix_socket: "{{ login_unix_socket | default(omit) }}"
+  when: mysql_remove_anonymous_users
+
+- name: Ensure that root can only login from localhost
+  community.mysql.mysql_query:
+    query: >
+      DELETE
+      FROM mysql.user
+      WHERE USER='root'
+        AND HOST NOT IN ('localhost',
+                         '127.0.0.1',
+                         '::1');
+    login_unix_socket: "{{ login_unix_socket | default(omit) }}"
+  when: mysql_remove_remote_root
+
+- name: Detect role support on MySQL version >= 5.7.6 or Mariadb version >= 10.4.0
+  community.mysql.mysql_query:
+    query: >
+      SELECT 1 FROM information_schema.COLUMNS
+                WHERE TABLE_SCHEMA = 'mysql' AND TABLE_NAME = 'user'
+                AND COLUMN_NAME = 'is_role';
+    login_unix_socket: "{{ login_unix_socket | default(omit) }}"
+  register: mysql_role_support
+  check_mode: false
+
+- name: Get all users that have no authentication_string on MySQL version >= 5.7.6 or Mariadb version >= 10.4.0
+  community.mysql.mysql_query:
+    query: >
+      SELECT CONCAT(QUOTE(USER), '@', QUOTE(HOST)) AS user
+      FROM mysql.user
+      WHERE (length(authentication_string)=0
+             OR authentication_string="")
+        AND USER NOT IN ('mysql.sys',
+                         'mysqlxsys',
+                         'mariadb.sys')
+        {{ 'AND CONVERT(is_role USING utf8) = "N"' if mysql_role_support.rowcount[0] > 0 }};
+    login_unix_socket: "{{ login_unix_socket | default(omit) }}"
+  register: mysql_users_wo_passwords_or_auth_string
+  check_mode: false
+  when: >
+    (mysql_distribution == "mysql" and mysql_version.version.full is version('5.7.6', '>=')) or
+    (mysql_distribution == "mariadb" and mysql_version.version.full
+    is version('10.4.0', '>='))
+
+- name: Get all users that have no password or authentication_string on MySQL version < 5.7.6 or Mariadb version < 10.4.0
+  community.mysql.mysql_query:
+    query: >
+      SELECT CONCAT(QUOTE(USER), '@', QUOTE(HOST)) AS user
+      FROM mysql.user
+      WHERE (length(password)=0
+             OR password="")
+        AND (length(authentication_string)=0
+             OR authentication_string="")
+        AND USER NOT IN ('mysql.sys',
+                         'mysqlxsys',
+                         'mariadb.sys')
+        {{ 'AND is_role = "N"' if mysql_role_support.rowcount[0] > 0 }};
+    login_unix_socket: "{{ login_unix_socket | default(omit) }}"
+  register: mysql_users_wo_passwords
+  check_mode: false
+  when: >
+    (mysql_distribution == "mysql" and mysql_version.version.full is version('5.7.6', '<')) or
+    (mysql_distribution == "mariadb" and mysql_version.version.full is
+    version('10.4.0', '<'))
+
+- name: Ensure that there are no users without password or authentication_string
+  community.mysql.mysql_query:
+    query:
+      - DROP USER {{ item.user }}
+    login_unix_socket: "{{ login_unix_socket | default(omit) }}"
+  with_community.general.flattened:
+    - "{{ mysql_users_wo_passwords.query_result | default([]) }}"
+    - "{{ mysql_users_wo_passwords_or_auth_string.query_result | default([]) }}"
