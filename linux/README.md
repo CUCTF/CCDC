@@ -37,5 +37,11 @@
 ## Passwords
 
 - Contains a checklist of items on how to change default passwords and how to access these default passwords
-- it also contains scripts for how to change these default passwords 
+- it also contains scripts for how to change these default passwords
+
+## Web Tools
+Includes commands to securing a web server, and setting up an Apache/PHP/MySQL Environment eith OpenSUSE
+Source: the RIT quick start guides
+https://drive.google.com/drive/u/0/folders/1hi_xuDQjA7556R2kua775Vmlq_r3WNtN
+ 
 
