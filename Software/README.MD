@@ -3,6 +3,7 @@
 - Snort packages/binaries from [Snort](https://www.snort.org/downloads/)
 - Nmap is from [nmap.org](https://nmap.org/download#linux-rpm)
 - [7zip](https://www.7-zip.org/download.html)
+- Blue_Team_Tools is taken from [simeononsecurity](https://github.com/simeononsecurity/Blue-Team-Tools/tree/master) 
 
 ## Linux Installation guide
 
