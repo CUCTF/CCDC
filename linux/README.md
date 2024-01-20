@@ -27,3 +27,15 @@
 - runbooks is from https://github.com/applied-cyber/ccdc.git 
   - has documentation of the team's linux experience and step from CCDC 
   - also has commands that we can use for CCDC 
+
+## Team_Tools
+
+- From https://github.com/WGU-CCDC/Blue-Team-Tools.git Linux folder
+- Overall folder that contains Harden SSH, Harden Apache, Install Snort, and general SSH information 
+- Each folder contains the script of each such as Harden SSH folder contains the script of that 
+
+## Passwords
+
+- Contains a checklist of items on how to change default passwords and how to access these default passwords
+- it also contains scripts for how to change these default passwords 
+
