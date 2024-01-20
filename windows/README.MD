@@ -1,7 +1,7 @@
 # Windows
 
 - [Scripts!](#scripts)
-- [PowerShell](#PowerShell Scripts)
+- [PowerShell](#powerShell_scripts)
 - [Other](#other)
 
 ## Scripts
