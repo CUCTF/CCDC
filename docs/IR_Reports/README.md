@@ -14,5 +14,10 @@ This form will be used to document any security incidents.
 
 1. Inform team leader or gopher of the incident.
 2. Get an IR/Networks admin to work with you.
-3. ONE person download the template (.md or .docx).
-4. Work on it.
+3. ONE person download the Incident Reponse template (.md or .docx).template (.docx).
+4. Refer to the Cyber Security Incident Initial System Triage for immediate information to collect.
+5. Work on it.
+
+## Intelectual Property Breach
+
+If it's an intellectual property breach, use the documents in the Intellectual_Property_Incident folder as a guide instead of the Initial_Incident_Triage document.
